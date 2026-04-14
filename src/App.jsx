@@ -179,7 +179,7 @@ export default function App() {
           <div className="hdr-bg" style={{ backgroundImage: `url(${IMG_SRC})` }} />
           <div className="hdr-overlay" />
           <div className="hdr-content">
-            <div className="blog-name" onClick={home}>Mamit Blog</div>
+            <div className="blog-name" onClick={home}>MASSIMA URBE</div>
             <div className="blog-tag">pensieri &middot; storie &middot; riflessioni</div>
             <nav className="nav">
               <button className={`nav-btn${view === "home" ? " active" : ""}`} onClick={home}>Scritti</button>
