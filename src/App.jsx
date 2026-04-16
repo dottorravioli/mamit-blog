@@ -217,7 +217,7 @@ export default function App() {
           <div className="hdr-overlay" />
           <div className="hdr-content">
             <div className="blog-name" onClick={home}>Massima Urbe</div>
-            <div className="blog-tag">pensieri &middot; storie &middot; riflessioni</div>
+            <div className="blog-tag">La figliotta d'Italia &middot; Vivo in un paese migliore del tuo</div>
             <nav className="nav">
               <button className={`nav-btn${view === "home" ? " active" : ""}`} onClick={home}>Scritti</button>
               {isAdmin && <button className="nav-new" onClick={startNew}>+ Nuovo</button>}
