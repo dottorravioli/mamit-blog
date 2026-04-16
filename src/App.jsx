@@ -61,7 +61,7 @@ const css = `
   .full-date { font-family: 'DM Mono', monospace; font-size: 0.68rem; color: #00e5c7; letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 0.6rem; }
   .full-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(2rem,6vw,2.8rem); letter-spacing: 0.08em; color: #fff; margin-bottom: 1.8rem; line-height: 1.05; }
   .divider { border: none; border-top: 1px solid rgba(255,45,120,0.35); margin-bottom: 2rem; }
-  .full-body { font-size: 1rem; line-height: 1.9; color: rgba(240,238,232,0.78); white-space: pre-wrap; }
+  .full-body { font-size: 1rem; line-height: 1.9; color: rgba(240,238,232,0.78); }
   .actions { display: flex; gap: 0.8rem; margin-top: 2.5rem; flex-wrap: wrap; }
   .a-btn { background: none; border: 1px solid rgba(255,255,255,0.12); cursor: pointer; font-family: 'DM Mono', monospace; font-size: 0.68rem; color: rgba(255,255,255,0.4); padding: 0.4rem 0.9rem; letter-spacing: 0.1em; border-radius: 2px; transition: all 0.2s; }
   .a-btn:hover { border-color: rgba(255,255,255,0.4); color: #fff; }
@@ -79,6 +79,9 @@ const css = `
   .btn-can { background: none; border: 1px solid rgba(255,255,255,0.12); cursor: pointer; font-family: 'DM Mono', monospace; font-size: 0.7rem; color: rgba(255,255,255,0.4); padding: 0.65rem 1.4rem; letter-spacing: 0.1em; text-transform: uppercase; border-radius: 2px; transition: all 0.2s; }
   .btn-can:hover { border-color: rgba(255,255,255,0.35); color: rgba(255,255,255,0.7); }
   .fheading { font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; letter-spacing: 0.1em; color: #fff; margin-bottom: 2rem; }
+  .toolbar { display: flex; gap: 0.4rem; margin-bottom: 0.5rem; flex-wrap: wrap; }
+  .tb-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.6); cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 0.85rem; padding: 0.3rem 0.7rem; border-radius: 2px; transition: all 0.15s; }
+  .tb-btn:hover { background: rgba(255,45,120,0.15); border-color: #ff2d78; color: #ff2d78; }
   .login-box { max-width: 340px; margin: 6rem auto; text-align: center; }
   .login-title { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; letter-spacing: 0.1em; color: #fff; margin-bottom: 0.5rem; }
   .login-sub { font-family: 'DM Mono', monospace; font-size: 0.7rem; color: rgba(255,255,255,0.3); letter-spacing: 0.15em; margin-bottom: 2rem; }
@@ -171,6 +174,40 @@ export default function App() {
   const home = () => setView("home");
   const cancel = () => { home(); setEditPost(null); setForm({ title: "", body: "" }); };
 
+  const taRef = () => document.getElementById("body-editor");
+
+  const wrap = (before, after) => {
+    const ta = taRef(); if (!ta) return;
+    const start = ta.selectionStart, end = ta.selectionEnd;
+    const sel = form.body.slice(start, end);
+    const newBody = form.body.slice(0, start) + before + sel + after + form.body.slice(end);
+    setForm(f => ({...f, body: newBody}));
+    setTimeout(() => { ta.focus(); ta.setSelectionRange(start + before.length, end + before.length); }, 0);
+  };
+
+  const wrapLine = (prefix) => {
+    const ta = taRef(); if (!ta) return;
+    const start = ta.selectionStart;
+    const lineStart = form.body.lastIndexOf("\n", start - 1) + 1;
+    const newBody = form.body.slice(0, lineStart) + prefix + form.body.slice(lineStart);
+    setForm(f => ({...f, body: newBody}));
+    setTimeout(() => { ta.focus(); ta.setSelectionRange(start + prefix.length, start + prefix.length); }, 0);
+  };
+
+  const renderMd = (text) => {
+    if (!text) return "";
+    return text
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+      .replace(/^# (.+)$/gm, "<h1 style=\"font-family:Bebas Neue,sans-serif;font-size:2rem;letter-spacing:0.08em;color:#fff;margin:1.5rem 0 0.5rem\">$1</h1>")
+      .replace(/^## (.+)$/gm, "<h2 style=\"font-family:Bebas Neue,sans-serif;font-size:1.4rem;letter-spacing:0.08em;color:#fff;margin:1.2rem 0 0.4rem\">$1</h2>")
+      .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+      .replace(/_(.+?)_/g, "<em>$1</em>")
+      .replace(/~~(.+?)~~/g, "<s>$1</s>")
+      .replace(/^- (.+)$/gm, "<li style=\"margin-left:1.2rem;margin-bottom:0.3rem\">$1</li>")
+      .replace(/^---$/gm, "<hr style=\"border:none;border-top:1px solid rgba(255,45,120,0.3);margin:1.5rem 0\">")
+      .replace(/\n/g, "<br>");
+  };
+
   return (
     <>
       <style>{css}</style>
@@ -180,9 +217,9 @@ export default function App() {
           <div className="hdr-overlay" />
           <div className="hdr-content">
             <div className="blog-name" onClick={home}>Massima Urbe</div>
-            <div className="blog-tag">La figliotta d'Italia &middot; Vivo in un paese migliore del tuo</div>
+            <div className="blog-tag">pensieri &middot; storie &middot; riflessioni</div>
             <nav className="nav">
-              <button className={`nav-btn${view === "home" ? " active" : ""}`} onClick={home}>Archivio</button>
+              <button className={`nav-btn${view === "home" ? " active" : ""}`} onClick={home}>Scritti</button>
               {isAdmin && <button className="nav-new" onClick={startNew}>+ Nuovo</button>}
               {isAdmin
                 ? <span style={{display:"flex",alignItems:"center",gap:"0.4rem"}}>
@@ -246,7 +283,7 @@ export default function App() {
                 <div className="full-date">{fmt(sel.updated_at || sel.created_at)}</div>
                 <h1 className="full-title">{sel.title}</h1>
                 <hr className="divider" />
-                <div className="full-body">{sel.body}</div>
+                <div className="full-body" dangerouslySetInnerHTML={{__html: renderMd(sel.body)}} />
                 {isAdmin && (
                   <div className="actions">
                     <button className="a-btn" onClick={() => edit(sel)}>Modifica</button>
@@ -266,7 +303,18 @@ export default function App() {
                 </div>
                 <div className="fg">
                   <label className="flabel">Testo</label>
-                  <textarea className="ft" placeholder="Scrivi qui..." value={form.body} onChange={e => setForm(f => ({...f, body: e.target.value}))} />
+                  <div className="toolbar">
+                    <button type="button" className="tb-btn" onClick={() => wrap("**","**")} title="Grassetto"><b>G</b></button>
+                    <button type="button" className="tb-btn" onClick={() => wrap("_","_")} title="Corsivo"><i>C</i></button>
+                    <button type="button" className="tb-btn" onClick={() => wrap("~~","~~")} title="Barrato"><s>S</s></button>
+                    <div className="tb-sep" />
+                    <button type="button" className="tb-btn" onClick={() => wrapLine("# ")} title="Titolo">T1</button>
+                    <button type="button" className="tb-btn" onClick={() => wrapLine("## ")} title="Sottotitolo">T2</button>
+                    <div className="tb-sep" />
+                    <button type="button" className="tb-btn" onClick={() => wrapLine("- ")} title="Lista">&#8226; Lista</button>
+                    <button type="button" className="tb-btn" onClick={() => wrap("\n---\n","\n")} title="Separatore">&#8212;</button>
+                  </div>
+                  <textarea id="body-editor" className="ft" placeholder="Scrivi qui..." value={form.body} onChange={e => setForm(f => ({...f, body: e.target.value}))} />
                 </div>
                 <div className="f-actions">
                   <button className="btn-pub" onClick={submit} disabled={saving}>{saving ? "Salvataggio..." : editPost ? "Salva" : "Pubblica"}</button>
